@@ -6,6 +6,7 @@ session_start();       // 로그인을 유지하기 위해 세션 시작
 $userid = $_POST['userid'];
 $userpw = $_POST['userpw'];
 
+
 // 2. DB에서 해당 아이디와 비밀번호가 일치하는 유저 찾기
 $sql = "SELECT * FROM users WHERE id = '$userid' AND password = '$userpw'";
 $result = mysqli_query($conn, $sql); /* $conn통해 접속할 데이터 베이스 찾고, $sql명령어 실행 */
@@ -18,6 +19,7 @@ if (mysqli_num_rows($result) > 0) {
     // 세션에 유저 아이디 저장 (로그인 상태 유지용)
     $_SESSION['userid'] = $row['id'];
     $_SESSION['username'] = $row['name'];
+    $_SESSION['userprofile'] = $row['profile'];
 
     echo "<script>
         alert('로그인에 성공했습니다! " . $row['name'] . "님 환영합니다.');

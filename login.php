@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Matcha Project</title>
+    <title>로그인화면</title>
 
     <style>  
     
@@ -18,8 +18,6 @@
         place-items: center;
         min-height: 100vh;
         background-color: #a3c191;
-        /* 폰트 설정 */
-        
 
     }
 

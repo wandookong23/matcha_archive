@@ -26,7 +26,7 @@ else{
 if (mysqli_query($conn, $sql)) {
     echo "<script>
         alert('회원가입이 완료되었습니다!');
-        location.href = 'main.php'; 
+        location.href = 'login.php'; 
     </script>";
 } else {
     echo "오류 발생: " . mysqli_error($conn);
