@@ -6,6 +6,7 @@ session_start();
 $post_id = $_GET['id'] ?? null;
 $userid = $_SESSION['userid'] ?? null;
 
+//id통해 아이디와 일치하는 유저정보와 게시글 정보를 데이터베이스에서 가져옵니다
 $user_sql = "SELECT * FROM users WHERE id = '$userid'";
 $user_result = mysqli_query($conn, $user_sql);
 $user = mysqli_fetch_assoc($user_result);
@@ -24,6 +25,11 @@ $row = mysqli_fetch_assoc($post_result);
 
 if (!$row) {
     echo "<script>alert('존재하지 않는 게시글입니다.'); location.href='mypage.php';</script>";
+    exit;
+}
+
+if ($row['author'] !== $userid) {
+    echo "본인만 수정할 수 있습니다.";
     exit;
 }
 ?>
@@ -186,6 +192,30 @@ if (!$row) {
             justify-content: center; /* 가로 중앙 */
             align-items: center;     /* 세로 중앙 */
         }
+
+
+        /* 수정, 삭제 버튼 */
+        .sumit{
+            display: flex;
+            gap: 10px;          /* 버튼 사이 간격 */
+            position: absolute; /* 부모 요소 기준으로 배치 */
+            right: 20px;
+            margin: 20px;
+           
+        }
+
+        .delete-sumit, .update-sumit{
+            background-color: #7D8F6B;
+            color: white;
+            border: none;
+            cursor: pointer;
+
+            width: 50px;  
+            height: 40px;
+
+            font-weight: bold;
+        }
+
     </style>
 </head>
 
@@ -196,6 +226,16 @@ if (!$row) {
             <div class="profile-top">
                 <div class="profile-circle">사진</div>
                 <span class="Pname"><?= htmlspecialchars($user['name']) ?></span>
+                <div class="sumit">
+                    <form action="process_delete.php" method="POST">
+                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                        <button type="submit" class="delete-sumit" onclick="return confirm('정말 이 게시글을 삭제하시겠습니까?');">삭제</button>
+                    </form>
+                    <form action="update.php" method="POST">
+                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                        <button type="submit" class="update-sumit" >수정</button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -231,6 +271,8 @@ if (!$row) {
             <tr class="settings-select">
                 <td><?= htmlspecialchars($row['category']) ?>게시판</td>
             </tr>
+
+       
         </tbody>
     </table>
 </body>
