@@ -132,7 +132,7 @@
 </head>
 
 <body>
-  <h1>게시글 입력 페이지</h1>
+  <h1>게시글 작성 페이지</h1>
 
     <form action="process_create.php" method="POST" enctype="multipart/form-data" class="write-container">
         <input type="text" name="title" class="title-input" placeholder="제목">

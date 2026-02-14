@@ -27,11 +27,7 @@ if (!$row) {
     echo "<script>alert('존재하지 않는 게시글입니다.'); location.href='mypage.php';</script>";
     exit;
 }
-
-if ($row['author'] !== $userid) {
-    echo "본인만 수정할 수 있습니다.";
-    exit;
-}
+ 
 ?>
 
 <!DOCTYPE html>
@@ -216,6 +212,90 @@ if ($row['author'] !== $userid) {
             font-weight: bold;
         }
 
+        /* 댓글 확인 목록 */
+        .chat-item{
+            width: 800px;
+            max-width: none;   /* 제한 제거 */
+            margin: 20px auto;       /* 상하 여백 및 중앙 정렬 */
+            padding: 15px;
+            border-bottom: 1px solid #b8d3a8; /* 댓글 사이 직선 */
+            text-align: left; /* 내용 정렬 */
+            
+
+        }
+
+        /* 댓글 작성자 */
+        .chat-name {
+            font-weight: bold;
+            font-size: 14px;
+            background : var(--box-color);
+        }
+
+        .comment-form{
+            margin: 40px auto;       /* 상하 여백 및 중앙 정렬 */
+            width: 100%;
+            display: flex;
+            justify-content: center;   /* 정렬 */
+        }
+
+        /* 댓글 입력 부분 */
+        .comment-form form{
+            width: 800px;
+            max-width: none;   /* 제한 제거 */
+            display: flex;           /* 가로로 나열 */
+            justify-content: center;  /* 가로 중앙 정렬 */
+            align-items: center;      /* 세로 높이 맞춤 */
+            gap: 10px;               /* 입력창과 버튼 사이 간격 */
+           
+        }
+
+        .comment-form textarea {
+            width: 80%;              /* 입력창 너비 조정 */
+            height: 40px;
+            padding: 10px;
+            resize: none;            /* 크기 조절 비활성화 */
+            border: 1px solid #ccc;
+        }
+
+        /* 댓글 등록 버튼 */
+        .chat_sumit{
+            background-color: #7D8F6B;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 60px;  
+            height: 40px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* 댓글내용 + 삭제버튼 가로정렬 */
+
+        .chat-row{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .chat-del button{
+            background-color: #7D8F6B;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 60px;
+            height: 32px;
+            font-size: 12px;
+        }
+
+        .like{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;   /* ← 이게 제일 깔끔한 방법 */
+        }
+
+
     </style>
 </head>
 
@@ -225,7 +305,7 @@ if ($row['author'] !== $userid) {
             <h1><?= htmlspecialchars($row['title']) ?></h1>
             <div class="profile-top">
                 <div class="profile-circle">사진</div>
-                <span class="Pname"><?= htmlspecialchars($user['name']) ?></span>
+                <span class="Pname"><?= htmlspecialchars($row['username']) ?></span>
                 <div class="sumit">
                     <form action="process_delete.php" method="POST">
                         <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
@@ -272,7 +352,119 @@ if ($row['author'] !== $userid) {
                 <td><?= htmlspecialchars($row['category']) ?>게시판</td>
             </tr>
 
-       
+             <tr>
+                <td>
+                    <div>
+                        <?php 
+                        // 현재 게시글/로그인 사용자 ID 설정
+                        $board_id = intval($post_id);
+                        $login_id = $userid;
+
+                        // 1. like DB 검증 (데이터가 있는지 확인)
+                        $check_url2 = "SELECT user_id FROM board_likes WHERE board_id='$board_id' AND user_id='$login_id'";
+                        $sql_check2 = mysqli_query($conn, $check_url2);
+                        
+                        // mysqli_num_rows를 쓰면 데이터가 몇 줄인지 알 수 있습니다. (0이면 안 누름, 1이면 누름)
+                        $is_liked = mysqli_num_rows($sql_check2) > 0;
+                        echo "<div class='like'>";
+                        // 2. 좋아요 상태에 따라 하트 출력
+                        if ($is_liked) {
+                            // [상태: 이미 좋아요 누름] -> 채워진 하트 출력 (누르면 process_like.php로 이동)
+                            echo '
+                            <form action="./process_like.php?id='.$board_id.'" method="POST">
+                                <input type="hidden" name="board_id" value="'.$board_id.'">
+                                <input type="image" style="cursor: pointer; width:30px;height:30px;" 
+                                    src="./image/채워진하트.png" alt="좋아요 취소">
+                            </form>';
+                        } else {
+                            // [상태: 아직 안 누름] -> 빈 하트 출력
+                            echo '
+                            <form action="./process_like.php?id='.$board_id.'" method="POST">
+                                <input type="hidden" name="board_id" value="'.$board_id.'">
+                                <input type="image" style="cursor: pointer; width:30px;height:30px;" 
+                                    src="./image/비어있는하트.png" alt="좋아요 하기">
+                            </form>';
+                        }
+                        
+                        // 3. 해당 게시글의 총 좋아요 개수 세기
+                        $count_query = "SELECT COUNT(*) as cnt FROM board_likes WHERE board_id='$board_id'";
+                        $count_res = mysqli_query($conn, $count_query);
+                        $count_row = mysqli_fetch_array($count_res);
+                        $total_likes = $count_row['cnt'];
+
+                        // 출력
+                        echo ' 좋아요 수 : ' . $total_likes;
+                        echo '</div>';
+
+                        ?>
+                    </div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    <div>
+                    <?php
+                    if (isset($_POST['chat-submit'])){
+                        $chat_content = $_POST['comment'];
+                        $user_id = $_SESSION['userid'];
+                        $board_id = $post_id;
+                    
+                    $sql = "
+                        INSERT INTO chattable (content, user_id, board_id)
+                        VALUES ('$chat_content', '$user_id', '$board_id')
+                    ";
+                    mysqli_query($conn, $sql);
+                    }  
+
+                        $chat_sql = "
+                        SELECT 
+                            chattable.*, users.name
+                        FROM chattable 
+                        
+                        JOIN users ON chattable.user_id = users.id
+                        WHERE chattable.board_id =  '".intval($post_id)."'
+                    ";
+                    $chat_result = mysqli_query($conn, $chat_sql);
+                
+                    while ($chat_row = mysqli_fetch_assoc($chat_result)) {
+                        echo "<div class='chat-item'>";
+                        echo "  <div class='chat-name'>".htmlspecialchars($chat_row['name'])."</div>";
+                        echo "  <div class='chat-row'>";  
+                        echo "  <div class='chat-content'>".nl2br(htmlspecialchars($chat_row['content']))."</div>";
+                        
+                        if ($chat_row['user_id'] == $userid) {
+                            echo "<div class='chat-del'>";
+                            echo "<form action='process_chat_delete.php' method='post'>";
+                            echo "<input type='hidden' name='chat_id' value='".$chat_row['id']."'>";
+                            echo "<button type='submit'>삭제</button>";
+                            echo " </form>";
+                            echo "</div>";
+                            
+                        }
+
+                        echo "</div>";
+                        echo "</div>";
+
+                    }
+
+                    
+                            
+                    ?>
+                    </div>
+            
+                
+                    <div class="comment-form">
+                        <form id="commentForm" method="post" action="">
+                            <textarea name="comment" placeholder="댓글을 입력하세요"></textarea>
+                            <button class="chat_sumit" name="chat-submit" type="submit">등록</button>
+                        </form>
+                    </div>
+                </div>
+        
+        </td>
+        </tr>
         </tbody>
     </table>
 </body>
