@@ -105,6 +105,11 @@ if (!$row) {
             margin-right: 10px;
         }
 
+        .Pname a{
+            text-decoration: none;  /* 밑줄 제거 */
+            color: inherit;         /* 글자색 부모색 따라감 (파란색 제거) */
+        }
+
         /* 게시글 테이블 */
         .read-container {
             width: 800px;
@@ -305,7 +310,7 @@ if (!$row) {
             <h1><?= htmlspecialchars($row['title']) ?></h1>
             <div class="profile-top">
                 <div class="profile-circle">사진</div>
-                <span class="Pname"><?= htmlspecialchars($row['username']) ?></span>
+                <span class="Pname"><a href="personal.php"><?= htmlspecialchars($row['username']) ?></a></span>
                 <div class="sumit">
                     <form action="process_delete.php" method="POST">
                         <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
