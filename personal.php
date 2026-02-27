@@ -2,15 +2,16 @@
 include 'db_conn.php';
 session_start();
 
-$userid = $_SESSION['userid'] ?? null;
+// 1. URL에서 대상 유저의 id를 가져옵니다. 없으면 로그인한 내 아이디를 사용.
+$target_id = $_GET['id'] ?? $_SESSION['userid']; 
+$login_user = $_SESSION['userid'] ?? null;
 
-
-/* users 테이블 */
-$user_sql = "SELECT * FROM users WHERE id = '$userid'";
+// 2. 대상 유저(게시글 작성자) 정보를 가져오기 
+$user_sql = "SELECT * FROM users WHERE id = '$target_id'";
 $user_result = mysqli_query($conn, $user_sql);
 $user = mysqli_fetch_assoc($user_result);
 
-/* 본인이 작성한 게시글 */
+// 3. 해당 유저가 작성한 게시글을 가져옵니다 
 $post_sql = "
 SELECT 
     board.id,
@@ -20,7 +21,7 @@ SELECT
     users.name AS username
 FROM board
 JOIN users ON board.author = users.id
-WHERE board.author = '$userid'
+WHERE board.author = '$target_id'
 ORDER BY board.date DESC
 ";
 $post_result = mysqli_query($conn, $post_sql);
@@ -63,12 +64,12 @@ body {
 .profile-circle {
     width: 80px;
     height: 80px;
-    background-color: #7D8F6B;
+    background-color: #97b486;
     border-radius: 50%; /* 원형으로 설정 */
     margin-right: 15px;
     display: grid;
     place-items: center;
-    
+    color: #dadada;
 }
 
 /* 닉네임 */
@@ -83,10 +84,11 @@ body {
     position: absolute; /* 위치 오른쪽에 고정*/
     right: 0;
     padding: 8px 15px; /* 상.하 8px, 좌.우 15px 패딩값*/
-    background-color: #7D8F6B;
+    background-color: #97b486;
     color: white;
     border: none;
     cursor: pointer;
+
 }
 
 /* 소개글 */
@@ -109,7 +111,7 @@ body {
 
 /* 테이블의 헤더 */
 .board-table th {
-    border: 2px solid #a3c191;
+    border: 2px solid #b8d3a8;
     padding: 12px;
     font-size: 18px;
 }
@@ -137,15 +139,18 @@ body {
 
 <body>
 
-<?php //개인페이지 헤더 부분 ?>
+<!-- //개인페이지 헤더 부분 -->
 <div class="profile-container">
     <div class="profile-top">
         <div class="profile-circle">사진</div>
         <span class="Pname"><?= htmlspecialchars($user['name']) ?></span>
         <div class="Pid"><?=htmlspecialchars($user['id'])?></div>
-        <button class="personal-submit" onclick="location.href='personal_change.php'">
-            회원정보 변경
-        </button>
+        <!-- 회원정보 변경 버튼은 '내 페이지'일 때만 보이도록 수정 -->
+        <?php if ($target_id === $login_user): ?>
+            <button class="personal-submit" onclick="location.href='personal_change.php'">
+                회원정보 변경
+            </button>
+        <?php endif; ?>
     </div>
 
     <div class="intro-box">
@@ -153,10 +158,10 @@ body {
     </div>
 </div>
 
-<?php //표 만들기 (b바디 부분) ?>
+<!--//표 만들기 (b바디 부분) -->
 <table class="board-table">
 
-<?php //테이블의 헤더 부분 ?>
+<!-- //테이블의 헤더 부분 -->
 <thead>
 <tr>
     <th class="title">제목</th>
@@ -166,10 +171,10 @@ body {
 </tr>
 </thead>
 
-<?php //테이블의 데이터(본문) ?>
+<!--테이블의 데이터(본문) -->
 <tbody>  
 
-<?php //데이터가 하나라도 있는지 검증 ->  데이터 한 행씩 꺼내와 row에 담는다?>
+<!--데이터가 하나라도 있는지 검증 ->  데이터 한 행씩 꺼내와 row에 담는다 -->
 <?php if (mysqli_num_rows($post_result) > 0): ?> 
     <?php while ($row = mysqli_fetch_assoc($post_result)): ?>
         <tr> 
@@ -185,7 +190,7 @@ body {
 <?php endwhile; ?>
 <?php else: ?>
     <tr>
-        <?php //데이터 없을 시 칸 합치고, 텍스트 중앙정렬한다 ?>
+        <!-- 데이터 없을 시 칸 합치고, 텍스트 중앙정렬한다 -->
         <td colspan="4" style="text-align:center;">
             작성한 게시글이 없습니다.
         </td>

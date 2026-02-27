@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Matcha Project</title>
+    <title>회원가입 화면</title>
 
     <style>  
 

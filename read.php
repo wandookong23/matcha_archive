@@ -6,6 +6,7 @@ session_start();
 $post_id = $_GET['id'] ?? null;
 $userid = $_SESSION['userid'] ?? null;
 
+
 //id통해 아이디와 일치하는 유저정보와 게시글 정보를 데이터베이스에서 가져옵니다
 $user_sql = "SELECT * FROM users WHERE id = '$userid'";
 $user_result = mysqli_query($conn, $user_sql);
@@ -130,23 +131,23 @@ if (!$row) {
             gap: 20px;
         }
 
-        /* 사진 영역 */
+        /* 사진 영역 컨테이너 */
         .img-box {
-            flex: 1; /* 남은공간 차지하는 비율 */
+            flex: 1; /* 남은 공간 차지하는 비율 */
             height: 400px; /* 고정 높이 */
-            background-color: var(--box-color); 
-            overflow: hidden; /* 영역을 벗어나는 이미지 숨김 */
-
-            display: flex; /* 사진 중앙 정렬 */
-            flex-direction: column;
-            justify-content: center;
+            background-color: #e0e0e0; /* 빈 공간을 채울 회색 (원하는 색상 코드로 변경 가능) */
+            
+            /* 사진 중앙 정렬 */
+            display: flex; 
+            justify-content: center; /* 가로 중앙 정렬 */
+            align-items: center; /* 세로 중앙 정렬 (이 속성을 추가해야 완벽히 중앙에 옵니다) */
         }
 
+        /* 박스 안에 들어가는 실제 이미지 태그 스타일 */
         .img-box img {
-            display: block; /* 사진 블록으로 지정 */
-            width: 100%;    /* 부모 너비에 맞춤 */
-            height: 100%;
-            object-fit: cover; /* 사진 비율 깨지지 않게 한다 */
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; /* 핵심: 사진을 자르지 않고, 비율을 유지한 채 박스 안에 쏙 들어가게 줄임 */
         }
 
         /* 본문 입력창 */
@@ -310,17 +311,19 @@ if (!$row) {
             <h1><?= htmlspecialchars($row['title']) ?></h1>
             <div class="profile-top">
                 <div class="profile-circle">사진</div>
-                <span class="Pname"><a href="personal.php"><?= htmlspecialchars($row['username']) ?></a></span>
-                <div class="sumit">
-                    <form action="process_delete.php" method="POST">
-                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                        <button type="submit" class="delete-sumit" onclick="return confirm('정말 이 게시글을 삭제하시겠습니까?');">삭제</button>
-                    </form>
-                    <form action="update.php" method="POST">
-                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                        <button type="submit" class="update-sumit" >수정</button>
+                <span class="Pname"><a href="personal.php?id=<?= $row['author'] ?>"><?= htmlspecialchars($row['username']) ?></a></span>
+                <?php if ($row['author'] === $userid): ?>
+                    <div class="sumit">
+                        <form action="process_delete.php" method="POST">
+                            <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                            <button type="submit" class="delete-sumit" onclick="return confirm('정말 이 게시글을 삭제하시겠습니까?');">삭제</button>
+                        </form>
+                        <form action="update.php" method="POST">
+                            <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                            <button type="submit" class="update-sumit" >수정</button>
                     </form>
                 </div>
+                    <?php endif; ?>
             </div>
         </div>
 
@@ -410,6 +413,7 @@ if (!$row) {
             <tr>
                 <td>
                     <div>
+                <!-- 댓글입력 부분-->
                     <?php
                     if (isset($_POST['chat-submit'])){
                         $chat_content = $_POST['comment'];
